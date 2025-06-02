@@ -3,7 +3,7 @@
 This project contains API test cases for the Swagger Petstore API (https://petstore.swagger.io), focusing on functional testing of the pet-related endpoints.
 
 ## 🔍 Project Goal
-To validate the correctness of key API endpoints through automated tests using [Your Language or Tool — e.g., Postman, Python + requests, REST Assured].
+To validate the correctness of key API endpoints through automated tests using Postman.
 
 ## 🧪 What’s Covered
 
