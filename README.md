@@ -7,10 +7,12 @@ To validate the correctness of key API endpoints through automated tests using P
 
 ## 🧪 What’s Covered
 
-- `POST /pet` – Add a new pet
-- `GET /pet/{petId}` – Get pet by ID
-- `PUT /pet` – Update an existing pet
-- `DELETE /pet/{petId}` – Delete a pet
+- `POST /https://api-dev.easyfin
+- `GET /https://api-dev.easyfin/{Id}
+- `PUT /https://api-dev.easyfin
+- `DELETE /https://api-dev.easyfin
+- `PATCH /https://api-dev.easyfin
+
 - Negative test cases (404, 400 responses)
 - Status code & body assertions
 
