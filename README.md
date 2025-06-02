@@ -18,9 +18,7 @@ To validate the correctness of key API endpoints through automated tests using [
 
 - [✅] Postman (with Tests tab scripts)
 - [✅] Newman (for CLI execution)
-- OR
-- [✅] Python + Requests + Pytest (if you're coding it)
-- JSON Schema Validation (optional)
+  
 
 ## 🚀 How to Run (if using Postman + Newman)
 
