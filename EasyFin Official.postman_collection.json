@@ -1,0 +1,4109 @@
+{
+	"info": {
+		"_postman_id": "f595397c-1af0-45d2-a363-bb66ce4873a5",
+		"name": "EasyFin Official",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43490185"
+	},
+	"item": [
+		{
+			"name": "EPIC-1. Registration/authorization",
+			"item": [
+				{
+					"name": "US-1.3 Log in with a PESEL number",
+					"item": [
+						{
+							"name": "Java",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": [
+										{
+											"name": "Valid login",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"// Verify response status equals to 200 success",
+															"pm.test(\"E1_US_1.3_Login\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});",
+															"",
+															"// Parse the response as JSON`",
+															"const responseJson = pm.response.json();",
+															"",
+															"// Save the access_token if it exists",
+															"if (responseJson.accessToken) {",
+															"    pm.environment.set(\"access_token\", responseJson.accessToken);",
+															"} else {",
+															"    console.log(\"accessToken not found in the response\");",
+															"}",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"pesel\": \"{{pesel_env}}\",\n  \"password\": \"{{newPassword_env}}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/clients/login",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"clients",
+														"login"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative cases",
+									"item": [
+										{
+											"name": "InValid login",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"E1_US_1.3_Login\", function () {",
+															"    pm.response.to.have.status(400);",
+															"});",
+															"",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {",
+															"    pesel: \"31072059010\",",
+															"    password: \"SecurePassword123$\"",
+															"};",
+															"",
+															"const testCases = {",
+															"    pesel: [\"023@22412340\", \"\"],",
+															"    password: [\"!@#######(*&^^\", \"\"]",
+															"}",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"// ➡ если кейсов по этому полю уже не осталось, переходим к следующему полю",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0; // если все поля прогнали — снова на начало",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"// Установить значения",
+															"fields.forEach(field => {",
+															"    const value = (field === currentField) ? negativeValue : validValues[field];",
+															"    pm.environment.set(`${field}_go_env_neg`, value);",
+															"    //console.log(`Setting ${field}_env_neg to: ${value}`);",
+															"});",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", negativeValue);",
+															"",
+															"// ➡ Лог: какое поле и какой негатив сейчас тестируется",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${negativeValue}'`);",
+															"",
+															"const totalCases = Object.values(testCases).reduce((sum, arr) => sum + arr.length, 0);",
+															"const testedSoFar = fields.slice(0, fieldIndex).reduce((sum, field) => sum + testCases[field].length, 0) + caseIndex + 1;",
+															"",
+															"if (testedSoFar >= totalCases) {",
+															"    console.log(\"✅ All negative cases tested.\");",
+															"    pm.environment.unset(\"current_field_index\");",
+															"    pm.environment.unset(\"current_case_index\");",
+															"    pm.environment.unset(\"fields_list\");",
+															"} else {",
+															"    caseIndex++;",
+															"    if (caseIndex >= currentTestCases.length) {",
+															"        caseIndex = 0;",
+															"        fieldIndex++;",
+															"    }",
+															"    pm.environment.set(\"current_case_index\", caseIndex);",
+															"    pm.environment.set(\"current_field_index\", fieldIndex);",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"pesel\": \"{{pesel_env}}\",\n  \"password\": \"{{password_env_neg}}\"\n  //\"password\": \"kfelrk\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/clients/login",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"clients",
+														"login"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Go",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": [
+										{
+											"name": "Valid login",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"// Verify response status equals to 200 success\r",
+															"pm.test(\"E1_US_1.3_Login\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});\r",
+															"\r",
+															"const cookies = pm.cookies.toObject();\r",
+															"\r",
+															"if (cookies['access-token']) {\r",
+															"    pm.environment.set(\"access_token_go\", cookies['access-token']);\r",
+															"    console.log(\"Access token saved from cookies:\", cookies['access-token']);\r",
+															"} else {\r",
+															"    console.log(\"access-token not found in cookies\");\r",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "eyJraWQiOiJWZ3lzWkV6MzAreWpiMHkzaUtvY1NUQ0xhT1FVS3doMDQ3ZlFCYnA1Y2pjPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiIxNGU4MzQ5OC00MGExLTcwYjUtMzM1Mi0wYmU3NDU5NTQ2OTMiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9pNFh0M29naW8iLCJjbGllbnRfaWQiOiJjMGo2NGxjcHBzc2hjdjNhbmNkN3FxajFlIiwib3JpZ2luX2p0aSI6Ijk1MWYxMWM2LThlM2QtNDE3OC1hMDYwLTgwYzEzZjE2ZWZhOCIsImV2ZW50X2lkIjoiNTZjYzlmNGMtZDQyYi00YzQ3LWFkMmYtY2E1YWUwNTQzNTk3IiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc0NDk1ODcyMCwiZXhwIjoxNzQ0OTYyMzIwLCJpYXQiOjE3NDQ5NTg3MjAsImp0aSI6IjRmNzQwMTUwLTc1YzctNDYzNS1hN2E4LWUzZmQ0OTc1ZTIxOCIsInVzZXJuYW1lIjoiNzgwNTIzNTExNzcifQ.u3g1So53nRa-_spXTdM5NP0nhu1JiRj0oKqes_aCB6aGa6LUHw71W9PDsHmqhnzj2CkIcdo5wjMo6TUjf6RMYmOOoYOMJgLePXcrwkqxdAtTa81kuj1SvvKb9E5KkRlHpoqelrz_xnU3aD-DAm0WXMGLS43mMl_gygnMa6CU93iCzMTAtFGeMA-fb6pnzQkgiFrWxyL15pc0sZkHINZbSJ_VfWmvkTQ68nQmT5jdjRCHYKzcu5ljK3zBNbduOPtQkfx1DjtC3e6c0smCmg03gh1JQfQktEt__0qlqtNtP3nGBS-f9ce7xyb3_cD1Bza1EEscbduG8tO69Y5ncDJgyg",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n    \"pesel\": \"{{pesel_go_env}}\",\r\n    //\"password\": \"fdcghvbjnk\"\r\n    \"password\": \"{{password_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/login",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"login"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative cases",
+									"item": [
+										{
+											"name": "Invalid login",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {",
+															"    pesel: \"98011918490\",",
+															"    password: \"Password123$\"",
+															"};",
+															"",
+															"const testCases = {",
+															"    pesel: [\"023@22412340\", \"\"],",
+															"    password: [\"!@#######(*&^^\", \"\"]",
+															"}",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"// ➡ если кейсов по этому полю уже не осталось, переходим к следующему полю",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0; // если все поля прогнали — снова на начало",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"// Установить значения",
+															"fields.forEach(field => {",
+															"    const value = (field === currentField) ? negativeValue : validValues[field];",
+															"    pm.environment.set(`${field}_go_env_neg`, value);",
+															"    //console.log(`Setting ${field}_env_neg to: ${value}`);",
+															"});",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", negativeValue);",
+															"",
+															"// ➡ Лог: какое поле и какой негатив сейчас тестируется",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${negativeValue}'`);",
+															"",
+															"const totalCases = Object.values(testCases).reduce((sum, arr) => sum + arr.length, 0);",
+															"const testedSoFar = fields.slice(0, fieldIndex).reduce((sum, field) => sum + testCases[field].length, 0) + caseIndex + 1;",
+															"",
+															"if (testedSoFar >= totalCases) {",
+															"    console.log(\"✅ All negative cases tested.\");",
+															"    pm.environment.unset(\"current_field_index\");",
+															"    pm.environment.unset(\"current_case_index\");",
+															"    pm.environment.unset(\"fields_list\");",
+															"} else {",
+															"    caseIndex++;",
+															"    if (caseIndex >= currentTestCases.length) {",
+															"        caseIndex = 0;",
+															"        fieldIndex++;",
+															"    }",
+															"    pm.environment.set(\"current_case_index\", caseIndex);",
+															"    pm.environment.set(\"current_field_index\", fieldIndex);",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"// Verify response status equals to 200 success\r",
+															"pm.test(\"E1_US_1.3_Login\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});\r",
+															"\r",
+															"// Get the cookies from the response\r",
+															"const cookies = pm.cookies.toObject();\r",
+															"\r",
+															"// Check if the access_token exists in cookies\r",
+															"if (cookies['access-token']) {\r",
+															"    pm.environment.set(\"access_token_go\", cookies['access-token']);\r",
+															"    console.log(\"Access token saved from cookies:\", cookies['access-token']);\r",
+															"} else {\r",
+															"    console.log(\"access-token not found in cookies\");\r",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "eyJraWQiOiJWZ3lzWkV6MzAreWpiMHkzaUtvY1NUQ0xhT1FVS3doMDQ3ZlFCYnA1Y2pjPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiIxNGU4MzQ5OC00MGExLTcwYjUtMzM1Mi0wYmU3NDU5NTQ2OTMiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9pNFh0M29naW8iLCJjbGllbnRfaWQiOiJjMGo2NGxjcHBzc2hjdjNhbmNkN3FxajFlIiwib3JpZ2luX2p0aSI6Ijk1MWYxMWM2LThlM2QtNDE3OC1hMDYwLTgwYzEzZjE2ZWZhOCIsImV2ZW50X2lkIjoiNTZjYzlmNGMtZDQyYi00YzQ3LWFkMmYtY2E1YWUwNTQzNTk3IiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc0NDk1ODcyMCwiZXhwIjoxNzQ0OTYyMzIwLCJpYXQiOjE3NDQ5NTg3MjAsImp0aSI6IjRmNzQwMTUwLTc1YzctNDYzNS1hN2E4LWUzZmQ0OTc1ZTIxOCIsInVzZXJuYW1lIjoiNzgwNTIzNTExNzcifQ.u3g1So53nRa-_spXTdM5NP0nhu1JiRj0oKqes_aCB6aGa6LUHw71W9PDsHmqhnzj2CkIcdo5wjMo6TUjf6RMYmOOoYOMJgLePXcrwkqxdAtTa81kuj1SvvKb9E5KkRlHpoqelrz_xnU3aD-DAm0WXMGLS43mMl_gygnMa6CU93iCzMTAtFGeMA-fb6pnzQkgiFrWxyL15pc0sZkHINZbSJ_VfWmvkTQ68nQmT5jdjRCHYKzcu5ljK3zBNbduOPtQkfx1DjtC3e6c0smCmg03gh1JQfQktEt__0qlqtNtP3nGBS-f9ce7xyb3_cD1Bza1EEscbduG8tO69Y5ncDJgyg",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n    \"pesel\": \"{{pesel_go_env_neg}}\",\r\n    \"password\": \"{{password_go_env_neg}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/login",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"login"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "US-1.5 Reset a password",
+					"item": [
+						{
+							"name": "Java",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": [
+										{
+											"name": "Send otp",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status test\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "pesel",
+															"value": "{{pesel_env}}",
+															"type": "text"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/clients/reset-password/send-otp",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"clients",
+														"reset-password",
+														"send-otp"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Reset password",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status test\", function () {",
+															"    pm.response.to.have.status(201);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"packages": {},
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"method": "PATCH",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"pesel\": {{pesel_env}},\n  \"otp\": \"379553\",\n  \"newPassword\": \"SecurePrd12$\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/clients/reset-password",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"clients",
+														"reset-password"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative cases",
+									"item": [
+										{
+											"name": "Reset password",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {",
+															"    pesel: \"04110675307\",",
+															"    otp: \"123456\",",
+															"    newPassword: \"SecurePassword124$\"",
+															"};",
+															"",
+															"const testCases = {",
+															"    pesel: [",
+															"        \"\", ",
+															"        \"abcdefghijk\", ",
+															"        \"02322 412340\", ",
+															"        \"02322412340@\", ",
+															"    ],",
+															"    otp: [",
+															"        \"\", ",
+															"        \"12345\", ",
+															"        \"1234567\", ",
+															"        \"12A456\", ",
+															"    ],",
+															"    newPassword: [",
+															"        \"\", ",
+															"        \"SecurePassword123$\", // same as previous one",
+															"        \"short1$\",  // 7 char",
+															"        \"password\", // no required complexity",
+															"    ]",
+															"};",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"// ➡ если кейсов по этому полю уже не осталось, переходим к следующему полю",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0; // если все поля прогнали — снова на начало",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"// Установить значения",
+															"fields.forEach(field => {",
+															"    const value = (field === currentField) ? negativeValue : validValues[field];",
+															"    pm.environment.set(`${field}_env_neg`, value);",
+															"    //console.log(`Setting ${field}_env_neg to: ${value}`);",
+															"});",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", negativeValue);",
+															"",
+															"// ➡ Лог: какое поле и какой негатив сейчас тестируется",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${negativeValue}'`);",
+															"",
+															"const totalCases = Object.values(testCases).reduce((sum, arr) => sum + arr.length, 0);",
+															"const testedSoFar = fields.slice(0, fieldIndex).reduce((sum, field) => sum + testCases[field].length, 0) + caseIndex + 1;",
+															"",
+															"if (testedSoFar >= totalCases) {",
+															"    console.log(\"✅ All negative cases tested.\");",
+															"    pm.environment.unset(\"current_field_index\");",
+															"    pm.environment.unset(\"current_case_index\");",
+															"    pm.environment.unset(\"fields_list\");",
+															"} else {",
+															"    caseIndex++;",
+															"    if (caseIndex >= currentTestCases.length) {",
+															"        caseIndex = 0;",
+															"        fieldIndex++;",
+															"    }",
+															"    pm.environment.set(\"current_case_index\", caseIndex);",
+															"    pm.environment.set(\"current_field_index\", fieldIndex);",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status test\", function () {",
+															"    pm.response.to.have.status(400);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PATCH",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"pesel\": \"{{pesel_env_neg}}\",\n  \"otp\": \"{{otp_env_neg}}\",\n  \"newPassword\": \"{newPassword_env_neg}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/clients/reset-password",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"clients",
+														"reset-password"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Send otp",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const testCases = [",
+															"    \"\", // Empty value",
+															"    \"abcdefghijk\", // Invalid format",
+															"    \"02322 412340\", // Invalid format with spaces",
+															"    \"02322412340@\", // Invalid value with special character",
+															"    \"04110675309\", // non - existent pesel",
+															"];",
+															"",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"// Get the current negative value for pesel",
+															"let negativeValue = testCases[caseIndex];",
+															"",
+															"// Set the environment variable for pesel",
+															"pm.environment.set(\"pesel_env\", negativeValue);",
+															"",
+															"// Log the current test case being executed",
+															"console.log(`🔍 Testing negative case: pesel = ${negativeValue}`);",
+															"",
+															"// Move to the next test case",
+															"caseIndex++;",
+															"if (caseIndex >= testCases.length) {",
+															"    caseIndex = 0; // Reset to the first test case",
+															"}",
+															"pm.environment.set(\"current_case_index\", caseIndex);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status test\", function () {",
+															"    pm.response.to.have.status(400);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "pesel",
+															"value": "{{pesel_env}}",
+															"type": "text"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/clients/reset-password/send-otp",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"clients",
+														"reset-password",
+														"send-otp"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Go",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": []
+								},
+								{
+									"name": "Negative cases",
+									"item": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "US-1.7 Sign-up",
+					"item": [
+						{
+							"name": "Java",
+							"item": [
+								{
+									"name": "Positive Cases",
+									"item": [
+										{
+											"name": "Register a new client",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"// #########################\r",
+															"// Email Manipulation\r",
+															"// #########################\r",
+															" \r",
+															"// let realEmail = \"lamanbaeva861@gmail.com\";\r",
+															" \r",
+															"// // Generate the current timestamp in ISO format for email\r",
+															"// let emailTimestamp = new Date().toISOString().replace(/[^0-9]/g, ''); // Remove non-numeric characters\r",
+															" \r",
+															"// // Append only the numeric part of the timestamp to the email\r",
+															"// let generatedEmail = `${realEmail.split('@')[0]}${emailTimestamp}@${realEmail.split('@')[1]}`;\r",
+															" \r",
+															"// pm.environment.set(\"email_env\", generatedEmail);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Generate Date of Birth for 18 to 100 Years Old\r",
+															"// #########################\r",
+															" \r",
+															"// Get the current date\r",
+															"let currentDate = new Date();\r",
+															" \r",
+															"// Calculate the maximum and minimum birth years\r",
+															"let maxYear = currentDate.getFullYear() - 18; // Latest year for someone 18 years old\r",
+															"let minYear = currentDate.getFullYear() - 100; // Earliest year for someone 100 years old\r",
+															" \r",
+															"// Generate a random year between minYear and maxYear\r",
+															"let randomYear = Math.floor(Math.random() * (maxYear - minYear + 1)) + minYear;\r",
+															" \r",
+															"// Generate a random month (1 to 12)\r",
+															"let randomMonth = Math.floor(Math.random() * 12) + 1; // Adding 1 to make it between 1 and 12\r",
+															"randomMonth = randomMonth.toString().padStart(2, '0'); // Ensure 2-digit format (e.g., \"01\")\r",
+															" \r",
+															"// Generate a random day (1 to 28 to ensure validity across all months)\r",
+															"let randomDay = Math.floor(Math.random() * 28) + 1; // Adding 1 to make it between 1 and 28\r",
+															"randomDay = randomDay.toString().padStart(2, '0'); // Ensure 2-digit format (e.g., \"01\")\r",
+															" \r",
+															"// Format the DOB in YYYY-MM-DD\r",
+															"let dateOfBirth = `${randomYear}-${randomMonth}-${randomDay}`;\r",
+															" \r",
+															"// Save the generated date of birth as an environment variable\r",
+															"pm.environment.set(\"date_of_birth_env\", dateOfBirth);\r",
+															"\r",
+															"\r",
+															"// ################################\r",
+															"// Pesel Handling\r",
+															"// ################################\r",
+															" \r",
+															"// Extract year, month, and day from date of birth\r",
+															"let [year, month, day] = dateOfBirth.split('-');\r",
+															" \r",
+															"// Calculate YYMMDD for PESEL (adjust month for 2000+ years by adding 20)\r",
+															"let centuryOffset = year >= 2000 ? 20 : 0;\r",
+															"let YY = year.slice(-2); // Last two digits of the year\r",
+															"let MM = String(Number(month) + centuryOffset).padStart(2, '0'); // Adjusted month\r",
+															"let DD = day.padStart(2, '0'); // Day\r",
+															" \r",
+															"// Unique Identifier (ZZZ) Handling\r",
+															" \r",
+															"// Generate a unique ZZZ based on the current timestamp\r",
+															"let timestamp = new Date().toISOString();\r",
+															"let ZZZ = timestamp.replace(/[^0-9]/g, '').slice(-3); // Last 3 digits of the timestamp\r",
+															" \r",
+															"// Gender Handling (X Component)\r",
+															" \r",
+															"// Define gender and set X based on gender (even for female, odd for male)\r",
+															"let gender = pm.environment.get(\"gender_env\") || \"male\"; // Default gender: male\r",
+															"let X = gender.toLowerCase() === \"male\" ? 1 : 2;\r",
+															" \r",
+															"// Check Digit (Q) Calculation\r",
+															" \r",
+															"// Construct the preliminary PESEL (without Q)\r",
+															"let partialPESEL = `${YY}${MM}${DD}${ZZZ}${X}`;\r",
+															" \r",
+															"// Calculate the check digit (Q) using PESEL checksum algorithm\r",
+															"let weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3]; // Weights for checksum\r",
+															"let checksum = partialPESEL\r",
+															"    .split('')\r",
+															"    .map((digit, index) => Number(digit) * weights[index])\r",
+															"    .reduce((sum, value) => sum + value, 0);\r",
+															" \r",
+															"let Q = (10 - (checksum % 10)) % 10; // Checksum digit\r",
+															" \r",
+															"// Combine all parts to create the final PESEL\r",
+															"let finalPESEL = `${partialPESEL}${Q}`;\r",
+															" \r",
+															"// Save PESEL as Environment Variable\r",
+															"pm.environment.set(\"pesel_env\", finalPESEL);\r",
+															"console.log(\"Generated PESEL:\", finalPESEL);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Mobile Phone Generation (E.164 Format)\r",
+															"// #########################\r",
+															" \r",
+															"// Generate a 9-digit random number\r",
+															"let randomDigits = Math.floor(Math.random() * 1000000000); // Generate a number between 0 and 999999999\r",
+															" \r",
+															"// Ensure it has exactly 9 digits (pad with leading zeros if necessary)\r",
+															"let mobilePhone = String(randomDigits).padStart(9, '0');\r",
+															" \r",
+															"// Save the generated mobile phone number as an environment variable\r",
+															"pm.environment.set(\"mobile_phone_env\", mobilePhone);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Document Number Generation (9 Characters: Uppercase Letters + Numbers)\r",
+															"// #########################\r",
+															" \r",
+															"// Get the current timestamp and extract the last 6 digits\r",
+															" \r",
+															"let last6Digits = timestamp.replace(/[^0-9]/g, '').slice(-6); // Get the last 6 digits from the timestamp\r",
+															" \r",
+															"// Function to generate 2 random uppercase letters\r",
+															"function generateRandomLetters(length) {\r",
+															"    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; // Allowed characters (uppercase letters)\r",
+															"    let result = '';\r",
+															"    for (let i = 0; i < length; i++) {\r",
+															"        const randomIndex = Math.floor(Math.random() * letters.length);\r",
+															"        result += letters.charAt(randomIndex); // Append random letter\r",
+															"    }\r",
+															"    return result;\r",
+															"}\r",
+															" \r",
+															"// Generate the document number by combining 2 random letters and the last 6 digits of the timestamp\r",
+															"let randomLetters = generateRandomLetters(2);\r",
+															"let documentNumber = randomLetters + last6Digits; // Combine random letters with the last 6 digits of the timestamp\r",
+															" \r",
+															"// Save the generated document number as an environment variable\r",
+															"pm.environment.set(\"document_number_env\", documentNumber);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"// Check response code\r",
+															"pm.test(\"Status test\", function () {\r",
+															"    pm.response.to.have.status(201);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n    \"firstName\": \"Luis\",\r\n    \"middleName\": \"Filipe\",\r\n    \"lastName\": \"Dias\",\r\n    \"dateOfBirth\": \"{{date_of_birth_env}}\",\r\n    \"pesel\": \"{{pesel_env}}\",\r\n    \"phoneNumber\": \"{{mobile_phone_env}}\",\r\n    \"email\": \"{{email_env}}\",\r\n    \"addresses\": [\r\n        {\r\n            \"addressType\": \"RESIDENTIAL_ADDRESS\",\r\n            \"postcode\": \"4700123\",\r\n            \"streetName\": \"Rua de Cima\",\r\n            \"buildingNumber\": \"Abl\",\r\n            \"apartmentNumber\": \"Ab1\",\r\n            \"city\": \"Braga\",\r\n            \"country\": \"Poland\"\r\n        }\r\n    ],\r\n    \"documents\": [\r\n        {\r\n            \"documentType\": \"ID_CARD\",\r\n            \"documentNumber\": \"{{document_number_env}}\",\r\n            \"issuingCountry\": \"Portugal\",\r\n            \"issueDate\": \"2025-02-27\",\r\n            \"expiryDate\": \"2030-12-31\",\r\n            \"documentPhotos\": [\r\n                {\r\n    \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/front/f5ed2079-348b-49f6-a8c8-3071cef1a3e4\",\r\n    \"photoType\": \"FRONT\",\r\n    \"originalFilename\": \"_ (8).jpeg\",\r\n    \"contentType\": \"image/jpeg\",\r\n    \"fileSize\": 24641\r\n},\r\n                {\r\n                    \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/back/7089c061-d34b-4c31-917c-5275162e6f58\",\r\n                    \"photoType\": \"BACK\",\r\n                    \"originalFilename\": \"_ (27).jpeg\",\r\n                    \"contentType\": \"image/jpeg\",\r\n                    \"fileSize\": 15669\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"photoSelfie\":{\r\n    \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/selfie/18bb1937-fa2d-4e04-8996-4facf4a5b1d2\",\r\n    \"photoType\": \"SELFIE\",\r\n    \"originalFilename\": \"___29_-removebg-preview.png\",\r\n    \"contentType\": \"image/png\",\r\n    \"fileSize\": 117481\r\n}\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/register-client",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"register-client"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Validate pesel",
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"method": "GET",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/validate/pesel/{{pesel_env}}",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"validate",
+														"pesel",
+														"{{pesel_env}}"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Check pesel registration",
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"method": "GET",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": []
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/exists/pesel/{{pesel_env}}",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"exists",
+														"pesel",
+														"{{pesel_env}}"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Check email registration",
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"method": "GET",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": []
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/exists/pesel/{{email_env}}",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"exists",
+														"pesel",
+														"{{email_env}}"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Check ID document",
+											"request": {
+												"method": "GET",
+												"header": [],
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/exists/document/{{document_number_env}}",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"exists",
+														"document",
+														"{{document_number_env}}"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Send front photo",
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photoFile",
+															"type": "file",
+															"src": "postman-cloud:///1f01f4ae-6b11-4010-8eed-e2bf891d9a52"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/photos/front",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"photos",
+														"front"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Send back photo",
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photoFile",
+															"type": "file",
+															"src": "postman-cloud:///1f01f4b0-a859-4420-93a3-c247e2c3732e"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/photos/back",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"photos",
+														"back"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Send selfie",
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photoFile",
+															"type": "file",
+															"src": "postman-cloud:///1f01f4b2-111a-4c60-9965-34efed50012f"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/photos/selfie",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"photos",
+														"selfie"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Verificate email",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/verify-email-on-aws?pesel={{pesel_env}}",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"verify-email-on-aws"
+													],
+													"query": [
+														{
+															"key": "pesel",
+															"value": "{{pesel_env}}"
+														}
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Set password",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "PATCH",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"pesel\": \"{{pesel_env}}\",\r\n  \"password\": \"SecurePassword123$\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/set-password",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"set-password"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Valid Login Credentials",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"// Verify response status equals to 200 success\r",
+															"pm.test(\"E1_US_1.3_Login\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});\r",
+															"\r",
+															"// Parse the response as JSON\r",
+															"const responseJson = pm.response.json();\r",
+															"\r",
+															"// Log the full response to check the structure\r",
+															"console.log(responseJson);\r",
+															"\r",
+															"// Save the access_token if it exists\r",
+															"if (responseJson.accessToken) {\r",
+															"    pm.environment.set(\"access_token\", responseJson.accessToken);\r",
+															"} else {\r",
+															"    console.log(\"accessToken not found in the response\");\r",
+															"}\r",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"pesel\": \"{{pesel_env}}\",\r\n  \"password\": \"{{newPassword_env}}\"\r\n} ",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/login",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"login"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Get user data",
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{accessToken}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [],
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative Cases",
+									"item": [
+										{
+											"name": "part1",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {\r",
+															"    firstName: \"Luis\",\r",
+															"    middleName: \"Filipe\",\r",
+															"    lastName: \"Dias\",\r",
+															"    dateOfBirth: \"1990-05-20\",\r",
+															"    pesel: \"90052012345\",\r",
+															"    phoneNumber: \"+48123456789\",\r",
+															"    email: \"test@example.com\"\r",
+															"};\r",
+															"\r",
+															"const testCases = {\r",
+															"    firstName: [\"\", \"A\", \"123\", \"John@\", \"VeryLongFirstNameThatExceedsLimit12345\"],\r",
+															"    middleName: [\"\", \"1\", \"%%%\", \"VeryVeryVeryLongMiddleName123\"],\r",
+															"    lastName: [\"\", \"B\", \"Doe!\", \"ExtremelyLongLastNameWithSymbols%%\"],\r",
+															"    dateOfBirth: [\"\", \"20-05-1990\", \"19900520\", \"abcd-ef-gh\", \"2015-05-09\", \"1899-05-20\"],\r",
+															"    pesel: [\"\", \"12345\", \"123456789012\", \"abcdefghijk\", \"123 456 7890\", \"12345@67890\"],\r",
+															"    phoneNumber: [\"\", \"123\", \"abcdefg\", \"+48(123)456789\", \"123456789012345\"],\r",
+															"    email: [\"\", \"no-at-symbol.com\", \"a@b\", \"toolongemail\".repeat(10) + \"@test.com\"]\r",
+															"};\r",
+															"\r",
+															"const fields = Object.keys(testCases);\r",
+															"\r",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");\r",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");\r",
+															"\r",
+															"let currentField = fields[fieldIndex];\r",
+															"let negativeValue = testCases[currentField][caseIndex];\r",
+															"\r",
+															"fields.forEach(field => {\r",
+															"    const value = (field === currentField) ? negativeValue : validValues[field];\r",
+															"    pm.environment.set(`${field}_env`, value);\r",
+															"    //console.log(\"current Case: \",`${field}_env`, value);\r",
+															"});\r",
+															"console.log(`🔵Field: ${currentField}`);\r",
+															"console.log(`❗️Case: ${negativeValue}`);\r",
+															"\r",
+															"pm.environment.set(\"current_field\", currentField);\r",
+															"pm.environment.set(\"current_case\", negativeValue);\r",
+															"\r",
+															"caseIndex++;\r",
+															"if (caseIndex >= testCases[currentField].length) {\r",
+															"    caseIndex = 0;\r",
+															"    fieldIndex = (fieldIndex + 1) % fields.length;\r",
+															"    if (fieldIndex >= fields.length) {\r",
+															"        console.log(\"✅ All cases are tested\");\r",
+															"        fieldIndex = 0;\r",
+															"    }\r",
+															"}\r",
+															"pm.environment.set(\"current_case_index\", caseIndex);\r",
+															"pm.environment.set(\"current_field_index\", fieldIndex);\r",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 400/422\", function () {\r",
+															"    pm.expect(pm.response.code).to.be.oneOf([400, 422]);\r",
+															"});\r",
+															"\r",
+															"let currentField = pm.environment.get(\"current_field\");\r",
+															"let currentCase = pm.environment.get(\"current_case\");\r",
+															"\r",
+															"pm.test(`[${currentField}] Validation error message`, function () {\r",
+															"    const res = pm.response.json();\r",
+															"    pm.expect(pm.response.code).to.be.oneOf([400, 422]);\r",
+															"\r",
+															"   if (res.errors && Array.isArray(res.errors)) {\r",
+															"        const errorFields = res.errors.map(e => e.field?.toLowerCase());\r",
+															"        pm.expect(errorFields).to.include(currentField.toLowerCase());\r",
+															"    }\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"firstName\": \"{{first_name_env}}\",\r\n  \"middleName\": \"{{middle_name_env}}\",\r\n  \"lastName\": \"{{last_name_env}}\",\r\n  \"dateOfBirth\": \"{{date_of_birth_env}}\",\r\n  \"pesel\": \"{{pesel_env}}\",\r\n  \"phoneNumber\": \"{{mobile_phone_env}}\",\r\n  \"email\": \"{{email_env}}\",\r\n    \"addresses\": [\r\n        {\r\n            \"addressType\": \"RESIDENTIAL_ADDRESS\",\r\n            \"postcode\": \"4700123\",\r\n            \"streetName\": \"Rua de Cima\",\r\n            \"buildingNumber\": \"Abl\",\r\n            \"apartmentNumber\": \"Ab1\",\r\n            \"city\": \"Braga\",\r\n            \"country\": \"Portugal\"\r\n        }\r\n    ],\r\n    \"documents\": [\r\n        {\r\n            \"documentType\": \"ID_CARD\",\r\n            \"documentNumber\": \"{{document_number_env}}\",\r\n            \"issuingCountry\": \"Portugal\",\r\n            \"issueDate\": \"2025-02-27\",\r\n            \"expiryDate\": \"2030-12-31\",\r\n            \"documentPhotos\": [\r\n                {\r\n                    \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/front/b8cf675f-267e-48e3-be6a-08aca8ff051c\",\r\n                    \"photoType\": \"FRONT\",\r\n                    \"originalFilename\": \"front.png\",\r\n                    \"contentType\": \"image/png\",\r\n                    \"fileSize\": 56500\r\n                },\r\n                {\r\n                    \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/back/fcc75a2c-5b1c-44d9-8711-a4549c450129\",\r\n                    \"photoType\": \"BACK\",\r\n                    \"originalFilename\": \"back.png\",\r\n                    \"contentType\": \"image/png\",\r\n                    \"fileSize\": 41231\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"photoSelfie\": {\r\n        \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/selfie/69926104-8ae1-4545-be44-49abb93679a3\",\r\n        \"photoType\": \"SELFIE\",\r\n        \"originalFilename\": \"selfie.png\",\r\n        \"contentType\": \"image/png\",\r\n        \"fileSize\": 1048576\r\n    }\r\n}\r\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/register-client",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"register-client"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "addresses",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {\r",
+															"    addressType: \"RESIDENTIAL_ADDRESS\",\r",
+															"    postcode: \"4700-123\",\r",
+															"    streetName: \"Rua de Cima\",\r",
+															"    buildingNumber: \"10A\",\r",
+															"    apartmentNumber: \"12\",\r",
+															"    city: \"Braga\",\r",
+															"    country: \"Portugal\"\r",
+															"};\r",
+															"\r",
+															"const testCases = {\r",
+															"    addressType: [\"\", \"INVALID_TYPE\"],\r",
+															"    postcode: [\"\", \"123\", \"ABCDE\", \"470012345678\"],\r",
+															"    streetName: [\"\", \"%%%\", \"VeryLongStreetNameExceedingLimit12345\"],\r",
+															"    buildingNumber: [\"\", \"###\", \"999999999999\"],\r",
+															"    apartmentNumber: [\"\", \"abc@!\", \"0000000000\"],\r",
+															"    city: [\"\", \"123\", \"ThisCityNameIsWayTooLongToBeReal\"],\r",
+															"    country: [\"\", \"Atlantis\", \"123\"]\r",
+															"};\r",
+															"\r",
+															"const fields = Object.keys(testCases);\r",
+															"\r",
+															"let fieldIndex = parseInt(pm.environment.get(\"addr_field_index\") || \"0\");\r",
+															"let caseIndex = parseInt(pm.environment.get(\"addr_case_index\") || \"0\");\r",
+															"\r",
+															"let currentField = fields[fieldIndex];\r",
+															"let currentValue = testCases[currentField][caseIndex];\r",
+															"\r",
+															"fields.forEach(field => {\r",
+															"    const value = field === currentField ? currentValue : validValues[field];\r",
+															"    pm.environment.set(`${field}_env`, value);\r",
+															"});\r",
+															"\r",
+															"console.log(`🧪 Now testing field: \"${currentField}\" with value: \"${currentValue}\"`);\r",
+															"\r",
+															"pm.environment.set(\"current_field\", currentField);\r",
+															"pm.environment.set(\"current_case\", currentValue);\r",
+															"\r",
+															"caseIndex++;\r",
+															"if (caseIndex >= testCases[currentField].length) {\r",
+															"    caseIndex = 0;\r",
+															"    fieldIndex = (fieldIndex + 1) % fields.length;\r",
+															"}\r",
+															"\r",
+															"pm.environment.set(\"addr_case_index\", caseIndex);\r",
+															"pm.environment.set(\"addr_field_index\", fieldIndex);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"const currentField = pm.environment.get(\"current_field\");\r",
+															"const currentCase = pm.environment.get(\"current_case\");\r",
+															"\r",
+															"pm.test(`[${currentField}] Negative test — value: \"${currentCase}\"`, function () {\r",
+															"    pm.expect(pm.response.code).to.be.oneOf([400, 422]);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n    \"firstName\": \"Luis\",\r\n    \"middleName\": \"Filipe\",\r\n    \"lastName\": \"Dias\",\r\n    \"dateOfBirth\": \"1990-05-20\",\r\n    \"pesel\": \"90052012345\",\r\n    \"phoneNumber\": \"+48123456789\",\r\n    \"email\": \"test@example.com\",\r\n    \"addresses\": [\r\n    {\r\n      \"addressType\": \"{{addressType_env}}\",\r\n      \"postcode\": \"{{postcode_env}}\",\r\n      \"streetName\": \"{{streetName_env}}\",\r\n      \"buildingNumber\": \"{{buildingNumber_env}}\",\r\n      \"apartmentNumber\": \"{{apartmentNumber_env}}\",\r\n      \"city\": \"{{city_env}}\",\r\n      \"country\": \"{{country_env}}\"\r\n    }\r\n  ],\r\n    \"documents\": [\r\n        {\r\n            \"documentType\": \"ID_CARD\",\r\n            \"documentNumber\": \"{{document_number_env}}\",\r\n            \"issuingCountry\": \"Portugal\",\r\n            \"issueDate\": \"2025-02-27\",\r\n            \"expiryDate\": \"2030-12-31\",\r\n            \"documentPhotos\": [\r\n                {\r\n                    \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/front/b8cf675f-267e-48e3-be6a-08aca8ff051c\",\r\n                    \"photoType\": \"FRONT\",\r\n                    \"originalFilename\": \"front.png\",\r\n                    \"contentType\": \"image/png\",\r\n                    \"fileSize\": 56500\r\n                },\r\n                {\r\n                    \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/back/fcc75a2c-5b1c-44d9-8711-a4549c450129\",\r\n                    \"photoType\": \"BACK\",\r\n                    \"originalFilename\": \"back.png\",\r\n                    \"contentType\": \"image/png\",\r\n                    \"fileSize\": 41231\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"photoSelfie\": {\r\n        \"url\": \"https://easyfin-backend-dev-uploads.s3.amazonaws.com/document-photos/selfie/69926104-8ae1-4545-be44-49abb93679a3\",\r\n        \"photoType\": \"SELFIE\",\r\n        \"originalFilename\": \"selfie.png\",\r\n        \"contentType\": \"image/png\",\r\n        \"fileSize\": 1048576\r\n    }\r\n}\r\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_env}}/user-service/api/v1/clients/register-client",
+													"host": [
+														"{{url_env}}"
+													],
+													"path": [
+														"user-service",
+														"api",
+														"v1",
+														"clients",
+														"register-client"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Go",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": [
+										{
+											"name": "Create a new client",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"// #########################\r",
+															"// Generate Date of Birth for 18 to 100 Years Old\r",
+															"// #########################\r",
+															"\r",
+															"// Get the current date\r",
+															"let currentDate = new Date();\r",
+															"\r",
+															"// Calculate the maximum and minimum birth years\r",
+															"let maxYear = currentDate.getFullYear() - 18;\r",
+															"let minYear = currentDate.getFullYear() - 100;\r",
+															"\r",
+															"// Generate a random year between minYear and maxYear\r",
+															"let randomYear = Math.floor(Math.random() * (maxYear - minYear + 1)) + minYear;\r",
+															"\r",
+															"// Generate a random month (01 to 12)\r",
+															"let randomMonth = Math.floor(Math.random() * 12) + 1;\r",
+															"randomMonth = randomMonth.toString().padStart(2, '0');\r",
+															"\r",
+															"// Generate a random day (01 to 28)\r",
+															"let randomDay = Math.floor(Math.random() * 28) + 1;\r",
+															"randomDay = randomDay.toString().padStart(2, '0');\r",
+															"\r",
+															"// Format the DOB in the new format\r",
+															"let dateOfBirth = `${randomYear}-${randomMonth}-${randomDay}T00:00:00Z`;\r",
+															"\r",
+															"// Save as environment variable\r",
+															"pm.environment.set(\"date_of_birth_go_env\", dateOfBirth);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// First Name Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let first_name = \"Igor\";\r",
+															"\r",
+															"pm.environment.set(\"first_name_go_env\", first_name);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Last Name Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let last_name = \"Borodin\";\r",
+															"\r",
+															"pm.environment.set(\"last_name_go_env\", last_name);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Middle Name Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let middle_name = \"string\";\r",
+															"\r",
+															"pm.environment.set(\"middle_name_go_env\", middle_name);\r",
+															"\r",
+															"\r",
+															"// ################################\r",
+															"// PESEL Handling (based on date_of_birth_go_env)\r",
+															"// ################################\r",
+															"\r",
+															"// Get the date of birth and remove time part\r",
+															"let fullDate = pm.environment.get(\"date_of_birth_go_env\"); // Format: YYYY-MM-DDT00:00:00Z\r",
+															"let datePart = fullDate.split('T')[0]; // Get only YYYY-MM-DD\r",
+															"\r",
+															"// Extract year, month, day\r",
+															"let [year, month, day] = datePart.split('-');\r",
+															"let yearNum = parseInt(year);\r",
+															"\r",
+															"// PESEL: YYMMDD\r",
+															"let YY = year.slice(-2);\r",
+															"let MM = (yearNum >= 2000) ? (parseInt(month) + 20).toString().padStart(2, '0') : month.padStart(2, '0');\r",
+															"let DD = day.padStart(2, '0');\r",
+															"\r",
+															"// Generate random 3-digit ZZZ\r",
+															"let ZZZ = Math.floor(Math.random() * 1000).toString().padStart(3, '0');\r",
+															"\r",
+															"// Gender digit (X)\r",
+															"let gender = pm.environment.get(\"gender_env\") || \"male\";\r",
+															"let X = gender.toLowerCase() === \"male\"\r",
+															"  ? (Math.floor(Math.random() * 5) * 2 + 1) // odd\r",
+															"  : (Math.floor(Math.random() * 5) * 2);   // even\r",
+															"\r",
+															"// Build PESEL without check digit\r",
+															"let partialPESEL = `${YY}${MM}${DD}${ZZZ}${X}`;\r",
+															"\r",
+															"// Calculate check digit (Q)\r",
+															"let weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];\r",
+															"let checksum = partialPESEL\r",
+															"  .split('')\r",
+															"  .map((d, i) => parseInt(d) * weights[i])\r",
+															"  .reduce((a, b) => a + b, 0);\r",
+															"\r",
+															"let Q = (10 - (checksum % 10)) % 10;\r",
+															"\r",
+															"// Final PESEL\r",
+															"let finalPESEL = `${partialPESEL}${Q}`;\r",
+															"\r",
+															"// Save PESEL\r",
+															"pm.environment.set(\"pesel_go_env\", finalPESEL);\r",
+															"console.log(\"Generated PESEL:\", finalPESEL);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"protocolProfileBehavior": {
+												"disabledSystemHeaders": {}
+											},
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"date_of_birth\": \"{{date_of_birth_go_env}}\",\r\n  \"first_name\": \"{{first_name_go_env}}\",\r\n  \"last_name\": \"{{last_name_go_env}}\",\r\n  \"middle_name\": \"{{middle_name_go_env}}\",\r\n  \"pesel\": \"{{pesel_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/initiate-signup",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"initiate-signup"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Create address",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"// #########################\r",
+															"// Postal code Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let postal_code = \"\";\r",
+															"\r",
+															"pm.environment.set(\"postal_code_go_env\", postal_code);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Street Name Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let street_name = \"adsfa\";\r",
+															"\r",
+															"pm.environment.set(\"street_name_go_env\", street_name);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Building Number Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let building_number = \"12345\";\r",
+															"\r",
+															"pm.environment.set(\"building_number_go_env\", building_number);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Apartment number Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let apartment_number = \"\";\r",
+															"\r",
+															"pm.environment.set(\"apartment_number_go_env\", apartment_number);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// City Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let city = \"asdfas\";\r",
+															"\r",
+															"pm.environment.set(\"city_go_env\", city);\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n    \"postal_code\": \"\",\r\n    \"street_name\": \"{{street_name_go_env}}\",\r\n    \"building_number\": \"{{building_number_go_env}}\",\r\n    \"apartment_number\": \"\",\r\n    \"city\": \"{{city_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/address-information",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"address-information"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Verify document front side",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photo",
+															"type": "file",
+															"src": "postman-cloud:///1f01f4ae-6b11-4010-8eed-e2bf891d9a52"
+														},
+														{
+															"key": "id_document_number",
+															"value": "127422",
+															"type": "text"
+														},
+														{
+															"key": "expire_date",
+															"value": "2025-05-03",
+															"type": "text"
+														},
+														{
+															"key": "issue_date",
+															"value": "2006-01-02",
+															"type": "text"
+														},
+														{
+															"key": "issuing_country",
+															"value": "PL",
+															"type": "text"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/verify-document-front-side",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"verify-document-front-side"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Verify document back side",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photo",
+															"type": "file",
+															"src": "postman-cloud:///1f01f4ae-6b11-4010-8eed-e2bf891d9a52"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/verify-document-back-side",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"verify-document-back-side"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Verify document selfie",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photo",
+															"type": "file",
+															"src": "postman-cloud:///1f01f4b0-a859-4420-93a3-c247e2c3732e"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/verify-selfie",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"verify-selfie"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Add phone number",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"\r",
+															"let phone_number = \"+6068002677\";\r",
+															"\r",
+															"pm.environment.set(\"phone_number_go_env\", phone_number);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"phone_number\": \"{{phone_number_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/add-phone-number",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"add-phone-number"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Add password",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"\r",
+															" \r",
+															"let password = \"Password123$\";\r",
+															"\r",
+															"pm.environment.set(\"password_go_env\", password);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"password\": \"{{password_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/add-password",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"add-password"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Add email",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"\r",
+															" \r",
+															"let email = \"numluzuste@gufum.com\";\r",
+															"\r",
+															"pm.environment.set(\"email_go_env\", email);\r",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"email\": \"{{email_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/add-email",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"add-email"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Confirm email via otp",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"// #########################\r",
+															"// OTP Manipulation\r",
+															"// #########################\r",
+															" \r",
+															"let otp = \"845716\";\r",
+															"\r",
+															"pm.environment.set(\"otp_go_env\", otp);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"otp\": \"{{otp_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/confirm-signup",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"confirm-signup"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative cases",
+									"item": [
+										{
+											"name": "Create a new client",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"// #########################\r",
+															"// Generate Date of Birth for 18 to 100 Years Old\r",
+															"// #########################\r",
+															"\r",
+															"// Format the DOB in YYYY-MM-DD\r",
+															"let dateOfBirth_invalid = \"\"; \r",
+															" \r",
+															"// Save the generated date of birth as an environment variable\r",
+															"pm.environment.set(\"date_of_birth_go_env\", dateOfBirth_invalid);\r",
+															"let dateOfBirth = \"1948-05-02T00:00:00Z\";\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// First Name Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let first_name = \"Igor\";\r",
+															"\r",
+															"pm.environment.set(\"first_name_go_env\", first_name);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Last Name Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let last_name = \"Borodin\";\r",
+															"\r",
+															"pm.environment.set(\"last_name_go_env\", last_name);\r",
+															"\r",
+															"\r",
+															"// #########################\r",
+															"// Middle Name Manipulation\r",
+															"// #########################\r",
+															"\r",
+															"let middle_name = \"string\";\r",
+															"\r",
+															"pm.environment.set(\"middle_name_go_env\", middle_name);\r",
+															"\r",
+															"\r",
+															"// ################################\r",
+															"// PESEL Handling (based on date_of_birth_go_env)\r",
+															"// ################################\r",
+															"\r",
+															"// Get the date of birth and remove time part\r",
+															"let fullDate = pm.environment.get(\"date_of_birth_go_env\"); // Format: YYYY-MM-DDT00:00:00Z\r",
+															"\r",
+															"if (!fullDate) {\r",
+															"    console.log(\"Error: Date of birth is undefined or empty\");\r",
+															"} else {\r",
+															"    let datePart = fullDate.split('T')[0]; // Get only YYYY-MM-DD\r",
+															"\r",
+															"    // Extract year, month, day\r",
+															"    let [year, month, day] = datePart.split('-');\r",
+															"\r",
+															"    // Ensure year, month, and day are valid before proceeding\r",
+															"    year = year || \"1900\"; // Default to \"1900\" if year is undefined\r",
+															"    month = month && month.padStart(2, '0'); // Ensure month is padded to 2 digits\r",
+															"    day = day && day.padStart(2, '0'); // Ensure day is padded to 2 digits\r",
+															"\r",
+															"    let yearNum = parseInt(year);\r",
+															"\r",
+															"    // PESEL: YYMMDD\r",
+															"    let YY = year.slice(-2); // Get last 2 digits of year\r",
+															"    let MM = (yearNum >= 2000) ? (parseInt(month) + 20).toString().padStart(2, '0') : month;\r",
+															"    let DD = day;\r",
+															"\r",
+															"    // Generate random 3-digit ZZZ\r",
+															"    let ZZZ = Math.floor(Math.random() * 1000).toString().padStart(3, '0');\r",
+															"\r",
+															"    // Gender digit (X)\r",
+															"    let gender = pm.environment.get(\"gender_env\") || \"male\";\r",
+															"    let X = gender.toLowerCase() === \"male\"\r",
+															"        ? (Math.floor(Math.random() * 5) * 2 + 1) // odd\r",
+															"        : (Math.floor(Math.random() * 5) * 2);   // even\r",
+															"\r",
+															"    // Build PESEL without check digit\r",
+															"    let partialPESEL = `${YY}${MM}${DD}${ZZZ}${X}`;\r",
+															"\r",
+															"    // Calculate check digit (Q)\r",
+															"    let weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];\r",
+															"    let checksum = partialPESEL\r",
+															"        .split('')\r",
+															"        .map((d, i) => parseInt(d) * weights[i])\r",
+															"        .reduce((a, b) => a + b, 0);\r",
+															"\r",
+															"    let Q = (10 - (checksum % 10)) % 10;\r",
+															"\r",
+															"    // Final PESEL\r",
+															"    let finalPESEL = `${partialPESEL}${Q}`;\r",
+															"\r",
+															"    // Save PESEL\r",
+															"    pm.environment.set(\"pesel_go_env\", finalPESEL);\r",
+															"    console.log(\"Generated PESEL:\", finalPESEL);\r",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"// Check response code\r",
+															"pm.test(\"Status test\", function () {\r",
+															"    pm.response.to.have.status(400);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"date_of_birth\": \"{{date_of_birth_go_env}}\",\r\n  \"first_name\": \"{{first_name_go_env}}\",\r\n  \"last_name\": \"{{last_name_go_env}}\",\r\n  \"middle_name\": \"{{middle_name_go_env}}\",\r\n  \"pesel\": \"{{pesel_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/initiate-signup",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"initiate-signup"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Create address",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {",
+															"  apartment_number: \"5\",",
+															"  building_number: \"5\",",
+															"  city: \"City\",",
+															"  postal_code: \"78378\",",
+															"  street_name: \"Street\"",
+															"};",
+															"",
+															"const testCases = {",
+															"    postal_code: [",
+															"        \"7837898765\",      // больше 9 цифр",
+															"        \"783@78\",          // спецсимволы кроме тире",
+															"        \"ABCD12345\"        // буквы",
+															"    ],",
+															"    street_name: [",
+															"        \"S\",               // <2 символов",
+															"        \"This is a very long street name that exceeds the allowed limit of 56 characters\",  // >56 символов",
+															"        \"Street!@#\",       // спецсимволы кроме ' или -",
+															"        \"Стрит\"            // non-latin",
+															"    ],",
+															"    building_number: [",
+															"        \"\",                // пусто.  (422)",
+															"        \"123456\",          // >5 символов",
+															"        \"5!@#\",            // недопустимые спецсимволы",
+															"        \"дом 1\",           // non-latin",
+															"    ],",
+															"    apartment_number: [",
+															"        \"123456\",          // >5 символов",
+															"        \"Apt!@#5\",         // недопустимые спецсимволы",
+															"        \"Квартира1\"        // нелатинские символы",
+															"    ],",
+															"    city: [",
+															"        \"\",                // пусто.    (422)",
+															"        \"This is a very long city name that exceeds the maximum allowed character limit of 168 characters and should trigger an error response from the system.\", // >168 символов",
+															"        \"New York@#\",      // спецсимволы кроме ' или -",
+															"        \"City123\",         // содержит цифры",
+															"        \"Москва\",          // нелатинские символы",
+															"    ]",
+															"};",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"// ➡ если кейсов по этому полю уже не осталось, переходим к следующему полю",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0; // если все поля прогнали — снова на начало",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"// Установить значения",
+															"fields.forEach(field => {",
+															"    const value = (field === currentField) ? negativeValue : validValues[field];",
+															"    pm.environment.set(`${field}_go_env_neg`, value);",
+															"    //console.log(`Setting ${field}_env_neg to: ${value}`);",
+															"});",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", negativeValue);",
+															"",
+															"// ➡ Лог: какое поле и какой негатив сейчас тестируется",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${negativeValue}'`);",
+															"",
+															"const totalCases = Object.values(testCases).reduce((sum, arr) => sum + arr.length, 0);",
+															"const testedSoFar = fields.slice(0, fieldIndex).reduce((sum, field) => sum + testCases[field].length, 0) + caseIndex + 1;",
+															"",
+															"if (testedSoFar >= totalCases) {",
+															"    console.log(\"✅ All negative cases tested.\");",
+															"    pm.environment.unset(\"current_field_index\");",
+															"    pm.environment.unset(\"current_case_index\");",
+															"    pm.environment.unset(\"fields_list\");",
+															"} else {",
+															"    caseIndex++;",
+															"    if (caseIndex >= currentTestCases.length) {",
+															"        caseIndex = 0;",
+															"        fieldIndex++;",
+															"    }",
+															"    pm.environment.set(\"current_case_index\", caseIndex);",
+															"    pm.environment.set(\"current_field_index\", fieldIndex);",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"",
+															"pm.test(\"400 or 422\", () => pm.expect(pm.response.code).to.be.oneOf([400, 422]));"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token_go}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"apartment_number\": \"{{apartment_number_go_env_neg}}\",\n  \"building_number\": \"{{building_number_go_env_neg}}\",\n  \"city\": \"{{city_go_env_neg}}\",\n  \"postal_code\": \"{{postal_code_go_env_neg}}\",\n  \"street_name\": \"{{street_name_go_env_neg}}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/address-information",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"address-information"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Verify document front side",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"400 or 422\", () => pm.expect(pm.response.code).to.be.oneOf([400, 422]));"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const testCases = {",
+															"    id_document_expire_date: [\"2000-01-01\"],",
+															"    id_document_issue_date: [\"2035-01-01\"],",
+															"    id_document_number: [\"\", \"12345678901234567890\", \"ABC#123$\"],",
+															"    passport_issuing_country: [\"POL\", \"\"],",
+															"    photo: [\"EMPTY_FILE\"]",
+															"};",
+															"",
+															"const validValues = {",
+															"    id_document_expire_date: \"2026-01-02\",",
+															"    id_document_issue_date: \"2006-01-02\",",
+															"    id_document_number: \"123423\",",
+															"    passport_issuing_country: \"PL\",",
+															"    photo: \"VALID_FILE\"",
+															"};",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"// ➡ если кейсов по этому полю уже не осталось, переходим к следующему полю",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0;",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"// Установить значения",
+															"for (const key in validValues) {",
+															"    let value = (key === currentField) ? negativeValue : validValues[key];",
+															"",
+															"    if (key === \"photo\") {",
+															"        if (value === \"VALID_FILE\") {",
+															"            // Загружаешь вручную",
+															"        } else if (value === \"EMPTY_FILE\") {",
+															"            pm.variables.set(\"omit_photo\", true);",
+															"        }",
+															"    } else {",
+															"        pm.variables.set(key, value);",
+															"    }",
+															"}",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", negativeValue);",
+															"",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${negativeValue}'`);",
+															"",
+															"const totalCases = Object.values(testCases).reduce((sum, arr) => sum + arr.length, 0);",
+															"const testedSoFar = fields.slice(0, fieldIndex).reduce((sum, field) => sum + testCases[field].length, 0) + caseIndex + 1;",
+															"",
+															"if (testedSoFar >= totalCases) {",
+															"    console.log(\"✅ All negative cases tested.\");",
+															"    pm.environment.unset(\"current_field_index\");",
+															"    pm.environment.unset(\"current_case_index\");",
+															"} else {",
+															"    caseIndex++;",
+															"    if (caseIndex >= currentTestCases.length) {",
+															"        caseIndex = 0;",
+															"        fieldIndex++;",
+															"    }",
+															"    pm.environment.set(\"current_case_index\", caseIndex);",
+															"    pm.environment.set(\"current_field_index\", fieldIndex);",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photo",
+															"type": "file",
+															"src": "postman-cloud:///1f01f4ae-6b11-4010-8eed-e2bf891d9a52"
+														},
+														{
+															"key": "id_document_number",
+															"value": "127422",
+															"type": "text"
+														},
+														{
+															"key": "expire_date",
+															"value": "2025-05-03",
+															"type": "text"
+														},
+														{
+															"key": "issue_date",
+															"value": "2006-01-02",
+															"type": "text"
+														},
+														{
+															"key": "issuing_country",
+															"value": "PL",
+															"type": "text"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/verify-document-front-side",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"verify-document-front-side"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Verify document back side",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 400\", function () {\r",
+															"    pm.response.to.have.status(400);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photo",
+															"type": "file",
+															"src": []
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/verify-document-back-side",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"verify-document-back-side"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Verify document selfie",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 400\", function () {\r",
+															"    pm.response.to.have.status(400);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "photo",
+															"type": "file",
+															"src": []
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/verify-selfie",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"verify-selfie"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Add phone number Copy",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const testCases = [\r",
+															"    \"\",               // пусто\r",
+															"    \"123\",            // слишком короткий\r",
+															"    \"abcdefghij\",     // буквы\r",
+															"    \"+123456789012\",  // слишком длинный\r",
+															"    \"!@#$%^&*()\",     // спецсимволы\r",
+															"    \"123456789\"       // невалидный формат\r",
+															"];\r",
+															"\r",
+															"let index = parseInt(pm.environment.get(\"phone_case_index\") || \"0\");\r",
+															"\r",
+															"if (index >= testCases.length) {\r",
+															"    console.log(\"✅ Все кейсы проверены\");\r",
+															"    pm.environment.unset(\"phone_case_index\");\r",
+															"    pm.environment.unset(\"current_phone_case\");\r",
+															"} else {\r",
+															"    const currentCase = testCases[index];\r",
+															"    pm.environment.set(\"phone_number_go_env\", currentCase);\r",
+															"    pm.environment.set(\"current_phone_case\", currentCase);\r",
+															"\r",
+															"    console.log(`📱 Тестируется phone_number: '${currentCase}'`);\r",
+															"\r",
+															"    // Обновляем индекс на следующий раз\r",
+															"    index++;\r",
+															"    pm.environment.set(\"phone_case_index\", index);\r",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 400\", function () {\r",
+															"    pm.response.to.have.status(400);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\r\n  \"phone_number\": \"{{phone_number_go_env}}\"\r\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/registration/add-phone-number",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"registration",
+														"add-phone-number"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "US-1.10 Lock Account After Failed Logins",
+					"item": [
+						{
+							"name": "Java",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": [
+										{
+											"name": "Block status",
+											"request": {
+												"method": "GET",
+												"header": [],
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/clients/{{pesel_env}}/block-status",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"clients",
+														"{{pesel_env}}",
+														"block-status"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative cases",
+									"item": []
+								}
+							]
+						},
+						{
+							"name": "Go",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": []
+								},
+								{
+									"name": "Negative cases",
+									"item": []
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "EPIC-4. Cards",
+			"item": [
+				{
+					"name": "US-4.4 Manage a card PIN v.2",
+					"item": [
+						{
+							"name": "Java",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": [
+										{
+											"name": "Manage pin(no current pin)",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"",
+															"let cardNumber = \"\";",
+															"pm.environment.set(\"card_number_java\",cardNumber);",
+															"",
+															"",
+															"let pin = \"2004\";",
+															"pm.environment.set(\"pin_java\", pin);",
+															"",
+															"",
+															"let confirmPin = \"2004\";",
+															"pm.environment.set(\"confirmPin_java\", confirmPin);",
+															"",
+															"",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"cardNumber\": \"{{card_number_java}}\",\n  \"pin\": \"{{pin_java}}\",\n  \"confirmPin\": \"{{confirmPin_java}}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/cards/manage-pin",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"cards",
+														"manage-pin"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Manage pin(current pin)",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"",
+															"let cardNumber = \"\";",
+															"pm.environment.set(\"card_number_java\",cardNumber);",
+															"",
+															"",
+															"let pin = \"2004\";",
+															"pm.environment.set(\"pin_java\", pin);",
+															"",
+															"",
+															"let confirmPin = \"2004\";",
+															"pm.environment.set(\"confirmPin_java\", confirmPin);",
+															"",
+															"",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"cardNumber\": \"{{card_number_java}}\",\n  \"currentPin\": \"{{pin_java}}\",\n  \"pin\": \"{{pin_java}}\",\n  \"confirmPin\": \"{{confirmPin_java}}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/cards/manage-pin",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"cards",
+														"manage-pin"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative cases",
+									"item": [
+										{
+											"name": "Manage pin(no current pin)",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {",
+															"  cardNumber: \"valid card number\",",
+															"  pin: \"1234\",",
+															"  confirmPin: \"1234\"",
+															"};",
+															"",
+															"const testCases = {",
+															"  pin: [",
+															"    { pin: \"1234\", confirmPin: \"4321\" },   // не совпадают PIN и confirmPin",
+															"    { pin: \"12\", confirmPin: \"12\"},   // PIN слишком короткий",
+															"    { pin: \"12345678\", confirmPin: \"12345678\"}, // PIN слишком длинный",
+															"    { pin: \"12a4\", confirmPin: \"12a4\"}, // PIN с буквами",
+															"    { pin: \"\", confirmPin: \"\" }, // пустой PIN",
+															"    { pin: \"12%4\", confirmPin: \"12%4\"} // PIN с символами",
+															"  ]",
+															"};",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0; ",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"fields.forEach(field => {",
+															"    const value = (field === \"pin\") ? negativeValue.pin : (field === \"confirmPin\" ? negativeValue.confirmPin : validValues[field]);",
+															"    pm.environment.set(`${field}_go_env_neg`, value);",
+															"});",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", JSON.stringify(negativeValue));",
+															"",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${JSON.stringify(negativeValue)}'`);",
+															"",
+															"const totalCases = Object.values(testCases).reduce((sum, arr) => sum + arr.length, 0);",
+															"const testedSoFar = fields.slice(0, fieldIndex).reduce((sum, field) => sum + testCases[field].length, 0) + caseIndex + 1;",
+															"",
+															"if (testedSoFar >= totalCases) {",
+															"    console.log(\"✅ All negative cases tested.\");",
+															"    pm.environment.unset(\"current_field_index\");",
+															"    pm.environment.unset(\"current_case_index\");",
+															"    pm.environment.unset(\"fields_list\");",
+															"} else {",
+															"    caseIndex++;",
+															"    if (caseIndex >= currentTestCases.length) {",
+															"        caseIndex = 0;",
+															"        fieldIndex++;",
+															"    }",
+															"    pm.environment.set(\"current_case_index\", caseIndex);",
+															"    pm.environment.set(\"current_field_index\", fieldIndex);",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(400);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"cardNumber\": \"{{card_number_java}}\",\n  \"pin\": \"{{pin_java}}\",\n  \"confirmPin\": \"{{confirmPin_java}}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_java _env}}/api/v1/cards/manage-pin",
+													"host": [
+														"{{url_java _env}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"cards",
+														"manage-pin"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Go",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": []
+								},
+								{
+									"name": "Negative cases",
+									"item": []
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "EPIC-5. Personal Profile",
+			"item": [
+				{
+					"name": "US-5.1 View and Edit personal data v. 2",
+					"item": [
+						{
+							"name": "Java",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": []
+								},
+								{
+									"name": "Negative cases",
+									"item": []
+								}
+							]
+						},
+						{
+							"name": "Go",
+							"item": [
+								{
+									"name": "Positive cases",
+									"item": [
+										{
+											"name": "Get personal data",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token_go}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/personal-data",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"personal-data"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Change address",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"let postal_code = \"654566\";",
+															"",
+															"pm.environment.set(\"postal_code_go_env\", postal_code);",
+															"",
+															"",
+															"let street_name = \"adsfa\";",
+															"",
+															"pm.environment.set(\"street_name_go_env\", street_name);",
+															"",
+															"",
+															"let building_number = \"12345\";",
+															"",
+															"pm.environment.set(\"building_number_go_env\", building_number);",
+															"",
+															"",
+															"",
+															"let apartment_number = \"23\";",
+															"",
+															"pm.environment.set(\"apartment_number_go_env\", apartment_number);",
+															"",
+															"",
+															"",
+															"let city = \"asdfas\";",
+															"",
+															"pm.environment.set(\"city_go_env\", city);",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status test\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token_go}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PUT",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"apartment_number\": \"{{apartment_number_go_env}}\",\n  \"building_number\": \"{{building_number_go_env}}\",\n  \"city\": \"{{city_go_env}}\",\n  \"postal_code\": \"{{postal_code_go_env}}\",\n  \"street_name\": \"{{street_name_go_env}}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/change-address-info",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"change-address-info"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Change contact info",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"let email = \"lamanbaeva861@gmail.com\";",
+															"pm.environment.set(\"email_go_env\", email);",
+															"",
+															" ",
+															"let phone_number = \"+6068502670\";",
+															"pm.environment.set(\"phone_number_go_env\", phone_number);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status test\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "eyJraWQiOiJWZ3lzWkV6MzAreWpiMHkzaUtvY1NUQ0xhT1FVS3doMDQ3ZlFCYnA1Y2pjPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiIyNGQ4OTQ4OC0yMDcxLTcwOTUtMjcyNy1hZGQ3NmQ5MDMxODciLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9pNFh0M29naW8iLCJjbGllbnRfaWQiOiJjMGo2NGxjcHBzc2hjdjNhbmNkN3FxajFlIiwib3JpZ2luX2p0aSI6IjBjMjU3NDhiLTBlMDMtNDI1MS1iNjczLWExMDgyNzNhYzdjNSIsImV2ZW50X2lkIjoiZTEyNzczMGYtMDdmMC00OWZiLThkY2YtZmQ3OTBiMDM5YjQ4IiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc0NjUyMDY0OCwiZXhwIjoxNzQ2NTI0MjQ4LCJpYXQiOjE3NDY1MjA2NDgsImp0aSI6IjI4NWY2ZjU1LTdmY2QtNDJhNy05NTA4LWIwNjA1NmUxYjQ4MCIsInVzZXJuYW1lIjoiOTgwMTE5MTg0OTAifQ.TuHL2eGsjDrvmMcEoPYsHbYXGOlwoM826_ThRCiBjbhy06X2QS_S55NPHFwhQN3lqx8tyg6NVcQk6Xj8zIoN09V9fULu-KMYtAyQKdIAHxReRMApsPNfuMSjoWTUDSwPwtG5AaRjUqNhMS3cxqVPszeNaF_LsJeTXa5zqPvKjPcPh8G1RP8Qs5b5wnHA356SZJ1XHaPlqzaXM1C83FMttnH-0RKO8e2ni1rGH0tdOopGQHI8a2dWhKzUOaPcDQHZIPe7L0tKHZktjL8rM1uLNVuLjg60q_H3wCS8ERQGcKwOG_9RdGjwXdYkPNU5MPWpcY66VYODoYBpc7D9peOt_w",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PUT",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"phone_number\": \"+380976635590\",\n    \"email\": \"ernsres00@gmail.com\"\n} ",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/confirm-change-contact-info",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"confirm-change-contact-info"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Change document info",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Status test\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token_go}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PUT",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "id_document_expire_date",
+															"value": "2036-01-02",
+															"type": "text"
+														},
+														{
+															"key": "id_document_issue_date",
+															"value": "2025-05-22",
+															"type": "text"
+														},
+														{
+															"key": "id_document_number",
+															"value": "123476",
+															"type": "text"
+														},
+														{
+															"key": "passport_issuing_country",
+															"value": "PL",
+															"type": "text"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/change-document-info?id_document_expire_date=2026-01-02&id_document_issue_date=2006-01-02&id_document_number=123456&passport_issuing_country=PL",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"change-document-info"
+													],
+													"query": [
+														{
+															"key": "id_document_expire_date",
+															"value": "2026-01-02"
+														},
+														{
+															"key": "id_document_issue_date",
+															"value": "2006-01-02"
+														},
+														{
+															"key": "id_document_number",
+															"value": "123456"
+														},
+														{
+															"key": "passport_issuing_country",
+															"value": "PL"
+														}
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative cases",
+									"item": [
+										{
+											"name": "Change address info",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {",
+															"  apartment_number: \"5\",",
+															"  building_number: \"5\",",
+															"  city: \"City\",",
+															"  postal_code: \"78378\",",
+															"  street_name: \"Street\"",
+															"};",
+															"",
+															"const testCases = {",
+															"    postal_code: [",
+															"        \"7837898765\",      // больше 9 цифр",
+															"        \"783@78\",          // спецсимволы кроме тире",
+															"        \"ABCD12345\"        // буквы",
+															"    ],",
+															"    street_name: [",
+															"        \"S\",               // <2 символов",
+															"        \"This is a very long street name that exceeds the allowed limit of 56 characters\",  // >56 символов",
+															"        \"Street!@#\",       // спецсимволы кроме ' или -",
+															"        \"Стрит\"            // non-latin",
+															"    ],",
+															"    building_number: [",
+															"        \"\",                // пусто.  (422)",
+															"        \"123456\",          // >5 символов",
+															"        \"5!@#\",            // недопустимые спецсимволы",
+															"        \"дом 1\",           // non-latin",
+															"    ],",
+															"    apartment_number: [",
+															"        \"123456\",          // >5 символов",
+															"        \"Apt!@#5\",         // недопустимые спецсимволы",
+															"        \"Квартира1\"        // нелатинские символы",
+															"    ],",
+															"    city: [",
+															"        \"\",                // пусто.    (422)",
+															"        \"This is a very long city name that exceeds the maximum allowed character limit of 168 characters and should trigger an error response from the system.\", // >168 символов",
+															"        \"New York@#\",      // спецсимволы кроме ' или -",
+															"        \"City123\",         // содержит цифры",
+															"        \"Москва\",          // нелатинские символы",
+															"    ]",
+															"};",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"// ➡ если кейсов по этому полю уже не осталось, переходим к следующему полю",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0; // если все поля прогнали — снова на начало",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"// Установить значения",
+															"fields.forEach(field => {",
+															"    const value = (field === currentField) ? negativeValue : validValues[field];",
+															"    pm.environment.set(`${field}_go_env_neg`, value);",
+															"    //console.log(`Setting ${field}_env_neg to: ${value}`);",
+															"});",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", negativeValue);",
+															"",
+															"// ➡ Лог: какое поле и какой негатив сейчас тестируется",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${negativeValue}'`);",
+															"",
+															"const totalCases = Object.values(testCases).reduce((sum, arr) => sum + arr.length, 0);",
+															"const testedSoFar = fields.slice(0, fieldIndex).reduce((sum, field) => sum + testCases[field].length, 0) + caseIndex + 1;",
+															"",
+															"if (testedSoFar >= totalCases) {",
+															"    console.log(\"✅ All negative cases tested.\");",
+															"    pm.environment.unset(\"current_field_index\");",
+															"    pm.environment.unset(\"current_case_index\");",
+															"    pm.environment.unset(\"fields_list\");",
+															"} else {",
+															"    caseIndex++;",
+															"    if (caseIndex >= currentTestCases.length) {",
+															"        caseIndex = 0;",
+															"        fieldIndex++;",
+															"    }",
+															"    pm.environment.set(\"current_case_index\", caseIndex);",
+															"    pm.environment.set(\"current_field_index\", fieldIndex);",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"",
+															"pm.test(\"400 or 422\", () => pm.expect(pm.response.code).to.be.oneOf([400, 422]));"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token_go}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PUT",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"apartment_number\": \"{{apartment_number_go_env_neg}}\",\n  \"building_number\": \"{{building_number_go_env_neg}}\",\n  \"city\": \"{{city_go_env_neg}}\",\n  \"postal_code\": \"{{postal_code_go_env_neg}}\",\n  \"street_name\": \"{{street_name_go_env_neg}}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/change-address-info",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"change-address-info"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Change contact info",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {",
+															"  email: \"valid.email@domain.com\",",
+															"  phone_number: \"+1234567890\"",
+															"};",
+															"",
+															"const testCases = {",
+															"    phone_number: [",
+															"        \"#1234567890\",               // спецсимволы кроме \"+\"",
+															"        \"+ 1234567890\",              // пробел после +",
+															"        \"+12345\",                    // слишком короткий",
+															"        \"+123456789012345678905678\",// слишком длинный",
+															"        \"1234567890\",                // без кода страны (нет \"+\")",
+															"        \"+ABCD12345\",                // буквы",
+															"        \"++1234567890\"               // двойной \"+\"",
+															"    ],",
+															"    email: [",
+															"        \"invalidemaildomain.com\",                                                  // без \"@\"",
+															"        \"valid.email@domain\",                                                      // без доменного расширения",
+															"        \"invalid!email@domain.com\",                                                // спецсимвол в префиксе",
+															"        \"valid.email@dom@ain.com\",                                                // двойной \"@\"",
+															"        \"a@b.c\",                                                                    // слишком короткий",
+															"        \"valid.emailaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@domain.com\",  // >100 символов",
+															"        \"valid.email@domain.zz\"                                                   // недопустимое расширение",
+															"    ]",
+															"};",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"",
+															"// ➡ если кейсов по этому полю уже не осталось, переходим к следующему полю",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0; // если все поля прогнали — снова на начало",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"// Установить значения",
+															"fields.forEach(field => {",
+															"    const value = (field === currentField) ? negativeValue : validValues[field];",
+															"    pm.environment.set(`${field}_go_env_neg`, value);",
+															"    //console.log(`Setting ${field}_env_neg to: ${value}`);",
+															"});",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", negativeValue);",
+															"",
+															"// ➡ Лог: какое поле и какой негатив сейчас тестируется",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${negativeValue}'`);",
+															"",
+															"const totalCases = Object.values(testCases).reduce((sum, arr) => sum + arr.length, 0);",
+															"const testedSoFar = fields.slice(0, fieldIndex).reduce((sum, field) => sum + testCases[field].length, 0) + caseIndex + 1;",
+															"",
+															"if (testedSoFar >= totalCases) {",
+															"    console.log(\"✅ All negative cases tested.\");",
+															"    pm.environment.unset(\"current_field_index\");",
+															"    pm.environment.unset(\"current_case_index\");",
+															"    pm.environment.unset(\"fields_list\");",
+															"} else {",
+															"    caseIndex++;",
+															"    if (caseIndex >= currentTestCases.length) {",
+															"        caseIndex = 0;",
+															"        fieldIndex++;",
+															"    }",
+															"    pm.environment.set(\"current_case_index\", caseIndex);",
+															"    pm.environment.set(\"current_field_index\", fieldIndex);",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"400 Bad request\", function () {",
+															"    pm.response.to.have.status(422);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token_go}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PUT",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"email\": \"{{email_go_env_neg}}\",\n  \"phone_number\": \"{{phone_number_go_env_neg}}\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/confirm-change-contact-info",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"confirm-change-contact-info"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Change document info",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const validValues = {",
+															"    id_document_expire_date: \"2030-12-31\",",
+															"    id_document_issue_date: \"2020-01-01\",",
+															"    id_document_number: \"AB1234567\",",
+															"    passport_issuing_country: \"KAZ\"",
+															"};",
+															"",
+															"const testCases = {",
+															"    id_document_expire_date: [",
+															"        \"\",                 // пусто",
+															"        \"2025-13-01\",       // невалидная дата",
+															"        \"not-a-date\",       // текст",
+															"        \"31-12-2030\"        // неправильный формат",
+															"    ],",
+															"    id_document_issue_date: [",
+															"        \"\", ",
+															"        \"2025-00-01\",       ",
+															"        \"random-text\", ",
+															"        \"01-01-2020\"",
+															"    ],",
+															"    id_document_number: [",
+															"        \"\", ",
+															"        \"123\",                  // слишком короткий",
+															"        \"!@#$%^&*\",             // спецсимволы",
+															"        \"AAAAAAAAAAAAAAAAAAA\"   // слишком длинный",
+															"    ],",
+															"    passport_issuing_country: [",
+															"        \"\", ",
+															"        \"123\",              // не страна",
+															"        \"KZ123\", ",
+															"        \"!\"                 // спецсимвол",
+															"    ]",
+															"};",
+															"",
+															"const fields = Object.keys(testCases);",
+															"",
+															"let fieldIndex = parseInt(pm.environment.get(\"current_field_index\") || \"0\");",
+															"let caseIndex = parseInt(pm.environment.get(\"current_case_index\") || \"0\");",
+															"",
+															"let currentField = fields[fieldIndex];",
+															"let currentTestCases = testCases[currentField];",
+															"",
+															"// ➡ если кейсов по этому полю уже не осталось, переходим к следующему полю",
+															"if (caseIndex >= currentTestCases.length) {",
+															"    caseIndex = 0;",
+															"    fieldIndex++;",
+															"    if (fieldIndex >= fields.length) {",
+															"        fieldIndex = 0; // если все поля прогнали — снова на начало",
+															"    }",
+															"    currentField = fields[fieldIndex];",
+															"    currentTestCases = testCases[currentField];",
+															"}",
+															"",
+															"let negativeValue = currentTestCases[caseIndex];",
+															"",
+															"// Установить значения",
+															"fields.forEach(field => {",
+															"    const value = (field === currentField) ? negativeValue : validValues[field];",
+															"    pm.environment.set(`${field}_env_neg`, value);",
+															"    //console.log(`Setting ${field}_env_neg to: ${value}`);",
+															"});",
+															"",
+															"pm.environment.set(\"current_field\", currentField);",
+															"pm.environment.set(\"current_case\", negativeValue);",
+															"",
+															"// ➡ Лог: какое поле и какой негатив сейчас тестируется",
+															"console.log(`⚡ Negative Testing: field '${currentField}', value '${negativeValue}'`);",
+															"",
+															"caseIndex++;",
+															"pm.environment.set(\"current_case_index\", caseIndex);",
+															"pm.environment.set(\"current_field_index\", fieldIndex);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"400 Bad request\", function () {",
+															"    pm.response.to.have.status(422);",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{access_token_go}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PUT",
+												"header": [],
+												"body": {
+													"mode": "formdata",
+													"formdata": [
+														{
+															"key": "id_document_expire_date",
+															"value": "{{id_document_expire_date_env_neg}}",
+															"type": "text"
+														},
+														{
+															"key": "id_document_issue_date",
+															"value": "{{id_document_issue_date_env_neg}}",
+															"type": "text"
+														},
+														{
+															"key": "id_document_number",
+															"value": "{{id_document_number_env_neg}}",
+															"type": "text"
+														},
+														{
+															"key": "passport_issuing_country",
+															"value": "{{passport_issuing_country_env_neg}}",
+															"type": "text"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{url_go_env}}/registration-service/api/v1/change-document-info?id_document_expire_date=2026-01-02&id_document_issue_date=2006-01-02&id_document_number=123456&passport_issuing_country=PL",
+													"host": [
+														"{{url_go_env}}"
+													],
+													"path": [
+														"registration-service",
+														"api",
+														"v1",
+														"change-document-info"
+													],
+													"query": [
+														{
+															"key": "id_document_expire_date",
+															"value": "2026-01-02"
+														},
+														{
+															"key": "id_document_issue_date",
+															"value": "2006-01-02"
+														},
+														{
+															"key": "id_document_number",
+															"value": "123456"
+														},
+														{
+															"key": "passport_issuing_country",
+															"value": "PL"
+														}
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
